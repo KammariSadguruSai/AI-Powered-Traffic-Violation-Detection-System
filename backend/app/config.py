@@ -57,6 +57,29 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173"]
 
     def __init__(self, **values):
+        # Preprocess CORS_ORIGINS to prevent JSONDecodeError from pydantic-settings
+        import json
+        cors_val = values.get("CORS_ORIGINS") or os.environ.get("CORS_ORIGINS")
+        if cors_val is not None:
+            if isinstance(cors_val, str):
+                cors_val = cors_val.strip()
+                if not cors_val:
+                    parsed_cors = []
+                elif cors_val.startswith("["):
+                    try:
+                        parsed_cors = json.loads(cors_val)
+                    except Exception:
+                        parsed_cors = [cors_val]
+                else:
+                    # Parse comma-separated origins
+                    parsed_cors = [o.strip() for o in cors_val.split(",") if o.strip()]
+            else:
+                parsed_cors = cors_val
+            
+            # Keep both input args and environment string synchronized in valid JSON format
+            values["CORS_ORIGINS"] = parsed_cors
+            os.environ["CORS_ORIGINS"] = json.dumps(parsed_cors)
+
         super().__init__(**values)
         if self.DATABASE_URL.startswith("postgresql://"):
             self.DATABASE_URL = self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
