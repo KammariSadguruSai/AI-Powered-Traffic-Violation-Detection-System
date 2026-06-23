@@ -1,0 +1,38 @@
+# ── Core Framework ────────────────────────────────────────────────────────────
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+pydantic-settings
+websockets
+aiosqlite
+
+# ── Database ──────────────────────────────────────────────────────────────────
+sqlalchemy
+# asyncpg is for postgres, we use sqlite
+alembic
+
+# ── AI / Computer Vision ──────────────────────────────────────────────────────
+ultralytics
+opencv-python-headless
+numpy
+torch
+torchvision
+
+# ── OCR ───────────────────────────────────────────────────────────────────────
+easyocr
+# paddleocr==2.7.3       # Uncomment to enable PaddleOCR (heavier dependency)
+
+# ── Data processing ───────────────────────────────────────────────────────────
+pandas
+Pillow
+albumentations
+
+# ── Export ────────────────────────────────────────────────────────────────────
+reportlab
+aiofiles
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+pytest
+pytest-asyncio
+httpx

@@ -1,0 +1,43 @@
+# Root level ignores
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+# System/uploads
+uploads/*
+!uploads/.gitkeep
+evidence/*
+!evidence/.gitkeep
+
+# Python recursive ignores
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Backend ignores
+backend/venv/
+backend/.venv/
+backend/.env
+backend/traffic_violations.db
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/evidence/*
+!backend/evidence/.gitkeep
+
+# Frontend ignores
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
