@@ -54,7 +54,11 @@ class Settings(BaseSettings):
     ANNOTATION_THICKNESS: int = 2
 
     # ── CORS ─────────────────────────────────────────────────────
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173"]
+    CORS_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://aitrafficsystem.vercel.app"
+    ]
 
     def __init__(self, **values):
         # Preprocess List[str] fields to prevent JSONDecodeError from pydantic-settings
