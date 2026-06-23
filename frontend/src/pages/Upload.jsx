@@ -272,15 +272,20 @@ export default function UploadPage() {
                 </div>
               </div>
             ) : preview ? (
-              <img
-                src={preview}
-                alt="Preview"
-                style={{
-                  width: "100%",
-                  borderRadius: 8,
-                  border: "1px solid var(--border)",
-                }}
-              />
+              <div className="scanning-container">
+                {loading && <div className="scanning-line" />}
+                <img
+                  src={preview}
+                  alt="Preview"
+                  style={{
+                    width: "100%",
+                    display: "block",
+                    borderRadius: "var(--radius-md)",
+                    opacity: loading ? 0.5 : 1,
+                    transition: "opacity 0.3s ease",
+                  }}
+                />
+              </div>
             ) : (
               <div style={{
                 display: "flex", flexDirection: "column",
