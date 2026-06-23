@@ -37,12 +37,22 @@ def _bbox_dict(d: Detection) -> Dict[str, float]:
 
 
 def _persons_on_vehicle(vehicle: Detection, persons: List[Detection]) -> List[Detection]:
-    """Return persons whose centre-point lies within the vehicle bounding box."""
+    """Return persons who are riding/occupying the vehicle based on bounding box intersection."""
     riders: List[Detection] = []
     for p in persons:
-        cx, cy = p.center
-        if vehicle.x1 <= cx <= vehicle.x2 and vehicle.y1 <= cy <= vehicle.y2:
-            riders.append(p)
+        # Calculate bounding box intersection
+        ix1 = max(vehicle.x1, p.x1)
+        iy1 = max(vehicle.y1, p.y1)
+        ix2 = min(vehicle.x2, p.x2)
+        iy2 = min(vehicle.y2, p.y2)
+        
+        if ix2 > ix1 and iy2 > iy1:
+            intersection_area = (ix2 - ix1) * (iy2 - iy1)
+            person_area = (p.x2 - p.x1) * (p.y2 - p.y1)
+            overlap_ratio = intersection_area / person_area
+            # A 12% vertical/horizontal intersection is standard for a rider on a motorcycle or occupant in a car
+            if overlap_ratio >= 0.12:
+                riders.append(p)
     return riders
 
 
@@ -57,13 +67,9 @@ class HelmetViolationRule:
     Detect riders on motorcycles without helmets.
 
     Heuristic:
-    - A rider's head region (top ~25% of person bbox) is examined.
-    - If the head sub-region is relatively bright/skin-toned and no
-      dark helmet-like blob is detected, a violation is flagged.
-    - Confidence is proportional to clarity of the head region.
-
-    Note: A production system would use a dedicated helmet classifier trained
-    on Indian traffic images. This heuristic gives reasonable results on clear images.
+    - A rider's head region (top ~28% of person bbox) is examined.
+    - Uses skin tone detection + dark ratio check to identify bare heads vs helmets.
+    - Confidence is scaled by person detection confidence.
     """
 
     MIN_CONFIDENCE = settings.HELMET_CONFIDENCE_MIN
@@ -107,15 +113,30 @@ class HelmetViolationRule:
         if head_roi.size == 0:
             return 0.0
 
-        # Convert to HSV and check for dark regions (helmet) in head area
+        # Convert to HSV
         import cv2
         hsv = cv2.cvtColor(head_roi, cv2.COLOR_BGR2HSV)
-        dark_mask = (hsv[:, :, 2] < 80)         # Value < 80 → dark object
+        
+        # 1. Check for dark regions (hair/black helmet)
+        dark_mask = (hsv[:, :, 2] < 80)
         dark_ratio = dark_mask.sum() / dark_mask.size
 
-        # High dark ratio in head → helmet present → low violation confidence
-        # Low dark ratio → no helmet → high violation confidence
-        no_helmet_conf = float(np.clip(0.95 - dark_ratio * 1.5, 0.0, 0.95))
+        # 2. Check for human skin tone (face/neck)
+        skin_mask = ((hsv[:, :, 0] >= 0) & (hsv[:, :, 0] <= 25) & 
+                     (hsv[:, :, 1] >= 20) & (hsv[:, :, 1] <= 160) & 
+                     (hsv[:, :, 2] >= 60))
+        skin_ratio = skin_mask.sum() / skin_mask.size
+
+        # If skin tone is detected (face/neck visible), it is likely a bare head (no full helmet)
+        if skin_ratio > 0.05:
+            # High skin ratio indicates no full-face helmet; dark hair on top is expected
+            no_helmet_conf = float(np.clip(0.88 + skin_ratio - dark_ratio * 0.4, 0.0, 0.95))
+        else:
+            # Back view or face hidden.
+            # If a massive dark blob covers the head, it's likely a black helmet (dark_ratio > 0.75)
+            # If not, it's likely hair/no helmet
+            no_helmet_conf = float(np.clip(0.82 - dark_ratio * 0.5, 0.0, 0.95))
+
         # Scale by person detection confidence
         return no_helmet_conf * person.confidence
 
