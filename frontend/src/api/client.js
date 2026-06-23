@@ -5,8 +5,16 @@
 import axios from "axios";
 
 let rawApiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
-if (rawApiUrl && !rawApiUrl.endsWith("/api/v1") && !rawApiUrl.endsWith("/api/v1/")) {
-  rawApiUrl = rawApiUrl.endsWith("/") ? `${rawApiUrl}api/v1` : `${rawApiUrl}/api/v1`;
+if (rawApiUrl) {
+  rawApiUrl = rawApiUrl.trim();
+  // Auto-prepend https:// if the protocol is missing from an absolute domain
+  if (!/^https?:\/\//i.test(rawApiUrl) && !rawApiUrl.startsWith("/")) {
+    rawApiUrl = `https://${rawApiUrl}`;
+  }
+  // Ensure it ends with /api/v1
+  if (!rawApiUrl.endsWith("/api/v1") && !rawApiUrl.endsWith("/api/v1/")) {
+    rawApiUrl = rawApiUrl.endsWith("/") ? `${rawApiUrl}api/v1` : `${rawApiUrl}/api/v1`;
+  }
 }
 const BASE_URL = rawApiUrl;
 
