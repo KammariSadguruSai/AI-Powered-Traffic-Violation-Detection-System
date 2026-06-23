@@ -76,6 +76,11 @@ class Settings(BaseSettings):
                         parsed = [item.strip() for item in val.split(",") if item.strip()]
                 else:
                     parsed = val
+                
+                # Strip trailing slashes for CORS origins to avoid browser header mismatches
+                if var_name == "CORS_ORIGINS" and isinstance(parsed, list):
+                    parsed = [item.rstrip("/") for item in parsed if isinstance(item, str)]
+
                 values[var_name] = parsed
                 os.environ[var_name] = json.dumps(parsed)
 
