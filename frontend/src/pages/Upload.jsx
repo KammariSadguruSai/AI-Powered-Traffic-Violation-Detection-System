@@ -240,7 +240,17 @@ export default function UploadPage() {
               </div>
               {result && (
                 <a
-                  href={`http://localhost:8000/evidence${result.evidence_path?.split("evidence")[1]}`}
+                  href={(() => {
+                    if (!result?.evidence_path) return "#";
+                    let base = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
+                    base = base.trim();
+                    if (!/^https?:\/\//i.test(base) && !base.startsWith("/")) {
+                      base = `https://${base}`;
+                    }
+                    const host = base.replace(/\/api\/v1\/?$/, "");
+                    const relPath = result.evidence_path.split("evidence")[1] || "";
+                    return `${host}/evidence${relPath}`;
+                  })()}
                   target="_blank"
                   rel="noreferrer"
                   className="btn btn-secondary btn-sm"
