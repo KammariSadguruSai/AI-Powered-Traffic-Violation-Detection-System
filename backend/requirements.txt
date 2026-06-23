@@ -9,7 +9,7 @@ aiosqlite
 
 # ── Database ──────────────────────────────────────────────────────────────────
 sqlalchemy
-# asyncpg is for postgres, we use sqlite
+asyncpg
 alembic
 
 # ── AI / Computer Vision ──────────────────────────────────────────────────────
